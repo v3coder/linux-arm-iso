@@ -1,0 +1,60 @@
+
+name: Build ARM64 Light ISO
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies & Emulation Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y debootstrap live-build xorriso squashfs-tools qemu-user-static binfmt-support
+
+      - name: Configure Live Build for ARM64
+        run: |
+          mkdir -p live-system/config
+          cd live-system
+          
+          lb config \
+              --architecture arm64 \
+              --distribution bookworm \
+              --debian-installer none \
+              --archive-areas "main contrib non-free non-free-firmware" \
+              --binary-images iso-hybrid \
+              --apt-recommends false \
+              --memtest none
+
+          mkdir -p config/package-lists
+          
+          # Ultra-lightweight GUI (Openbox + Tint2 + Picom) + apt package support
+          cat << 'EOF' > config/package-lists/desktop.list.chroot
+          xorg
+          xinit
+          openbox
+          tint2
+          picom
+          pcmanfm
+          lxterminal
+          network-manager
+          curl
+          wget
+          sudo
+          ca-certificates
+          EOF
+
+      - name: Build ARM64 ISO
+        run: |
+          cd live-system
+          sudo lb build
+
+      - name: Upload ISO Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: UltraLight_Win11Style_ARM64_ISO
+          path: live-system/*.iso
