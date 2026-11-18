@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04-arm  # গিটহাবের নিজস্ব নেটিভ ARM64 সার্ভার ব্যবহার করা হচ্ছে
+    runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -13,13 +13,15 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y debootstrap live-build xorriso squashfs-tools
+          # debian-archive-keyring যুক্ত করা হলো যাতে সিগনেচার ভেরিফাই করতে পারে
+          sudo apt-get install -y debootstrap live-build xorriso squashfs-tools debian-archive-keyring
 
       - name: Configure Live Build for ARM64
         run: |
           mkdir -p live-system/config
           cd live-system
           
+          # অফিশিয়াল ডেবিয়ান মিরর যুক্ত করা হলো (--mirror-*)
           lb config \
               --architecture arm64 \
               --distribution bookworm \
@@ -27,11 +29,13 @@ jobs:
               --archive-areas "main contrib non-free non-free-firmware" \
               --binary-images iso-hybrid \
               --apt-recommends false \
-              --memtest none
+              --memtest none \
+              --mirror-bootstrap "http://deb.debian.org/debian/" \
+              --mirror-chroot "http://deb.debian.org/debian/" \
+              --mirror-binary "http://deb.debian.org/debian/"
 
           mkdir -p config/package-lists
           
-          # Ultra-lightweight GUI (Openbox + Tint2 + Picom)
           cat << 'EOF' > config/package-lists/desktop.list.chroot
           xorg
           xinit
