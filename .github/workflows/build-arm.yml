@@ -5,16 +5,15 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm  # গিটহাবের নিজস্ব নেটিভ ARM64 সার্ভার ব্যবহার করা হচ্ছে
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Install Dependencies & Emulation Tools
+      - name: Install Dependencies
         run: |
           sudo apt-get update
-          # qemu-user-static এর পরিবর্তে সঠিক প্যাকেজগুলো এখানে দেওয়া হলো
-          sudo apt-get install -y debootstrap live-build xorriso squashfs-tools qemu-user qemu-user-binfmt binfmt-support
+          sudo apt-get install -y debootstrap live-build xorriso squashfs-tools
 
       - name: Configure Live Build for ARM64
         run: |
@@ -32,7 +31,7 @@ jobs:
 
           mkdir -p config/package-lists
           
-          # Ultra-lightweight GUI (Openbox + Tint2 + Picom) + apt package support
+          # Ultra-lightweight GUI (Openbox + Tint2 + Picom)
           cat << 'EOF' > config/package-lists/desktop.list.chroot
           xorg
           xinit
