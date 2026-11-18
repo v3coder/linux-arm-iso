@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-24.04-arm
     container:
       image: debian:bookworm
+      options: --privileged  # এটি কন্টেইনারকে সিস্টেম ফাইলসিস্টেম মাউন্ট করার অনুমতি দেবে
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
